@@ -1,11 +1,12 @@
 #!/bin/bash
+# $1 = day name
 
-# bash function for running sed on a file
-# $1 = file to run sed on
+# $1 = file to add the ItemGroup to
 function includeTxt() {
     sed "/<\/PropertyGroup>/a  <ItemGroup><Content Include=\"*.txt\" CopyToOutputDirectory=\"PreserveNewest\" /></ItemGroup>" -i $1
 }
 
+# $1 = project name
 function createProject() {
     project_name=$1
 
