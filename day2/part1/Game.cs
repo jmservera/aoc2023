@@ -1,7 +1,6 @@
-using System.Text;
+namespace day2.part1;
 
 public class Game
-
 {
     public Dictionary<int, int[][]> Games { get; } = new Dictionary<int, int[][]>();
     public Game(string fileName)

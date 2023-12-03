@@ -1,4 +1,6 @@
-namespace part1.test;
+namespace day2.part1.test;
+
+using day2.part1;
 
 public class GameTest
 {
