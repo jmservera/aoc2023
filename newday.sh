@@ -20,6 +20,9 @@ function createProject() {
 
     dotnet sln add $project_name/$project_name.csproj
     dotnet sln add $project_name.test/$project_name.test.csproj
+
+    touch $project_name/input.txt
+    touch $project_name.test/test.txt
 }
 
 mkdir $1
@@ -27,6 +30,8 @@ cd $1
 dotnet new sln -n $1
 
 createProject part1
+
 createProject part2
 
 dotnet add part2/part2.csproj reference part1/part1.csproj
+dotnet build
