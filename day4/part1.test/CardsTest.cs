@@ -30,4 +30,11 @@ public class CardsTest
         var cards = new Cards("test.txt");
         Assert.Equal(13, cards.FullScore());
     }
+
+    [Fact]
+    public void CalculateStackTest()
+    {
+        var cards = new Cards("test.txt");
+        Assert.Equal(30, cards.CalculateStack());
+    }
 }

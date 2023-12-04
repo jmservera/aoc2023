@@ -44,4 +44,23 @@ public class Cards
         return cards.Keys.Select(x => GetScore(x)).Sum();
     }
 
+    public int CalculateStack()
+    {
+        int[] multipliers = new int[cards.Count];
+        for (int i = 0; i < multipliers.Length; i++)
+        {
+            multipliers[i] = 1;
+        }
+        for (int i = 0; i < multipliers.Length; i++)
+        {
+            var c = CountCards(i + 1);
+            for (int j = 0; j < c; j++)
+            {
+                multipliers[i + j + 1] += multipliers[i];
+            }
+        }
+
+        return multipliers.Sum();
+    }
+
 }
