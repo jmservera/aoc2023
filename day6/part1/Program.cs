@@ -7,10 +7,8 @@ var result = lines[0].Split(new char[0], StringSplitOptions.RemoveEmptyEntries)[
 
 Console.WriteLine(result);
 
-long a = long.Parse(string.Concat(lines[0].Split(new char[0], StringSplitOptions.RemoveEmptyEntries)[1..]));
-long b = long.Parse(string.Concat(lines[1].Split(new char[0], StringSplitOptions.RemoveEmptyEntries)[1..]));
-
-var result2 = new[] { (a, b) }.Calc();
+var result2 = lines.Select(l => long.Parse(string.Concat(l.Split(new char[0], StringSplitOptions.RemoveEmptyEntries)[1..])))
+    .Chunk(2).ToList().Select(x => (x[0], x[1])).Calc();
 Console.WriteLine(result2);
 
 public static class Extensions
