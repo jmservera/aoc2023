@@ -29,20 +29,21 @@
     }
 }
 
+int getResult(string[] lines, int partIndex)
+{
+    return lines.Select(line => line.Split(' '))
+                .Select(parts => calcHand(parts, partIndex))
+                .OrderBy(r => r.handType).ThenBy(r => r.hand)
+                .Select((r, i) => new { r.hand, r.bet, r.handType, rank = i + 1 })
+                .Aggregate(0, (a, b) => a + b.bet * b.rank);
+}
+
 var lines = File.ReadAllLines("input.txt");
-var result = lines.Select(line => line.Split(' '))
-                  .Select(parts => calcHand(parts, 1))
-                  .OrderBy(r => r.handType).ThenBy(r => r.hand)
-                  .Select((r, i) => new { r.hand, r.bet, r.handType, rank = i + 1 })
-                  .Aggregate(0, (a, b) => a + b.bet * b.rank);
+var result = getResult(lines, 1);
 
 Console.WriteLine(result);
 
-var result2 = lines.Select(line => line.Split(' '))
-                  .Select(parts => calcHand(parts, 2))
-                  .OrderBy(r => r.handType).ThenBy(r => r.hand)
-                  .Select((r, i) => new { r.hand, r.bet, r.handType, rank = i + 1 })
-                  .Aggregate((long)0, (a, b) => a + b.bet * b.rank);
+var result2 = getResult(lines, 2);
 
 Console.WriteLine(result2);
 
