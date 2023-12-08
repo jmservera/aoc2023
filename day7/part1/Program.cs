@@ -1,32 +1,32 @@
 ﻿(string hand, int bet, int handType) calcHand(string[] parts, int partIndex)
 {
+    string hand;
+    var handCalc = parts[0];
     if (partIndex == 1)
     {
-        return (
-             parts[0].Replace('A', 'Z').Replace('K', 'Y').Replace('Q', 'X').Replace('J', 'W').Replace('T', 'V'),
-             int.Parse(parts[1]),
-            parts[0].GroupBy(c => c).Sum(g => g.Count() * g.Count())
-        );
+        hand = parts[0].Replace('A', 'Z').Replace('K', 'Y').Replace('Q', 'X').Replace('J', 'W').Replace('T', 'V');
     }
     else
     {
-        var handCalc = parts[0];
-        if (parts[0].Contains('J'))
+        hand = parts[0].Replace('A', 'Z').Replace('K', 'Y').Replace('Q', 'X').Replace('J', '0').Replace('T', 'V');
+
+        if (hand.Contains('0'))
         {
-            var r = parts[0].Replace('J', '0').GroupBy(c => c)
+            var r = hand.GroupBy(c => c)
                 .OrderByDescending(g => g.Count())
                 .Select(g => g.Key)
                 .Where(g => g != '0')
                 .FirstOrDefault();
             if (r != 0)
-                handCalc = parts[0].Replace('J', r);
+                handCalc = hand.Replace('0', r);
         }
-        return (
-         parts[0].Replace('A', 'Z').Replace('K', 'Y').Replace('Q', 'X').Replace('J', '0').Replace('T', 'V'),
-         int.Parse(parts[1])
-         , handCalc.GroupBy(c => c).Sum(g => g.Count() * g.Count())
-        );
     }
+
+    return (
+        hand,
+        int.Parse(parts[1]),
+        handCalc.GroupBy(c => c).Sum(g => g.Count() * g.Count())
+        );
 }
 
 int getResult(string[] lines, int partIndex)
