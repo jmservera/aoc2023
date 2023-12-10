@@ -188,4 +188,6 @@ var n = expanded.Chunk(2)
     .Sum(l => l.Count(c => c == '.'));
 Console.WriteLine(n);
 
+//draw it
+//expanded.Select(s => new string(s).Replace('0', ' ')).ToList().ForEach(Console.WriteLine);
 
