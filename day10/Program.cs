@@ -164,8 +164,23 @@ expanded.Chunk(2)
         .Replace('J', '┘').Replace('7', '┐')
         .Replace('L', '└').Replace('F', '┌')
         .Replace('-', '─').Replace('|', '│')
+        .Replace('.', '•')
         )
-     .ToList().ForEach(Console.WriteLine);
+     .ToList()
+     .ForEach(s =>
+     {
+         s.ToList().ForEach(c =>
+         {
+             Console.ForegroundColor = ConsoleColor.White;
+             Console.BackgroundColor = ConsoleColor.Black;
+             if (c == 'S')
+                 Console.BackgroundColor = ConsoleColor.Green;
+             else if (c == '•')
+                 Console.ForegroundColor = ConsoleColor.Red;
+             Console.Write(c);
+         });
+         Console.WriteLine();
+     });
 
 
 var n = expanded.Chunk(2)
