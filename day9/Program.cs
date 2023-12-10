@@ -1,6 +1,4 @@
-﻿using System.Data;
-
-var lines = File.ReadAllLines("input.txt");
+﻿var lines = File.ReadAllLines("input.txt");
 
 static long findNext(IList<int> l)
 {
