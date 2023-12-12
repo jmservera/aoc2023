@@ -1,18 +1,9 @@
 ﻿
 var lines = File.ReadAllLines("input.txt");
 
-int counter = 0;
-
 var result = lines.Select(line => line.Split(' '))
         .Select(line => (pattern: line[0], values: line[1].Split(',').Select(int.Parse).ToArray()))
-        .Sum(line =>
-        {
-            var i = Interlocked.Increment(ref counter);
-            Console.WriteLine($"${i}: {line.pattern} {string.Join(',', line.values)}");
-            var r = Count(line.pattern, line.values);
-            Console.WriteLine($"${i}: {line.pattern} {string.Join(',', line.values)} {r}");
-            return r;
-        });
+        .Sum(line => Count(line.pattern, line.values));
 
 
 static long Count(string pattern, int[] values, bool first = true, Dictionary<string, long>? memo = null)
@@ -97,18 +88,9 @@ static long Count(string pattern, int[] values, bool first = true, Dictionary<st
 }
 Console.WriteLine(result);
 
-counter = 0;
-
 long unfold = lines.Select(line => line.Split(' '))
         .Select(line => (pattern: line[0], values: line[1].Split(',').Select(int.Parse).ToArray()))
         .Select(line => (pattern: String.Join('?', Enumerable.Repeat<string>(line.pattern, 5).ToArray()), values: Enumerable.Repeat(line.values, 5).SelectMany(x => x).ToArray(), result: Count(line.pattern, line.values)))
-        .Sum(line =>
-        {
-            var i = Interlocked.Increment(ref counter);
-            // Console.WriteLine($"${i}: {line.pattern} {string.Join(',', line.values)}");
-            var r = Count(line.pattern, line.values);
-            Console.WriteLine($"${i}: {line.pattern} {string.Join(',', line.values)} {r}");
-            return r;
-        });
+        .Sum(line => Count(line.pattern, line.values));
 
 Console.WriteLine(unfold);
