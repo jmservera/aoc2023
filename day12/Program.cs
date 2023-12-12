@@ -24,26 +24,12 @@ static long Count(string pattern, int[] values, bool first = true, Dictionary<st
     long result = 0L;
     if (pattern.Length == 0)
     {
-        if (values.Length == 0 || (values.Length == 1 && values[0] == 0))
-        {
-            return 1;
-        }
-        else
-        {
-            return 0;
-        }
+        return values.Length == 0 || (values.Length == 1 && values[0] == 0) ? 1 : 0;
     }
 
     if (values.Length == 0 || (values.Length == 1 && values[0] == 0))
     {
-        if (pattern.Contains('#'))
-        {
-            return 0;
-        }
-        else
-        {
-            return 1;
-        }
+        return pattern.Contains('#') ? 0 : 1;
     }
 
     if (values[0] == 0)
@@ -87,10 +73,13 @@ static long Count(string pattern, int[] values, bool first = true, Dictionary<st
     return result;
 }
 Console.WriteLine(result);
-
+var watch = new System.Diagnostics.Stopwatch();
+watch.Start();
 long unfold = lines.Select(line => line.Split(' '))
         .Select(line => (pattern: line[0], values: line[1].Split(',').Select(int.Parse).ToArray()))
-        .Select(line => (pattern: String.Join('?', Enumerable.Repeat<string>(line.pattern, 5).ToArray()), values: Enumerable.Repeat(line.values, 5).SelectMany(x => x).ToArray(), result: Count(line.pattern, line.values)))
+        .Select(line => (pattern: string.Join('?', Enumerable.Repeat(line.pattern, 5).ToArray()), values: Enumerable.Repeat(line.values, 5).SelectMany(x => x).ToArray(), result: Count(line.pattern, line.values)))
         .Sum(line => Count(line.pattern, line.values));
+watch.Stop();
 
+Console.WriteLine($"Execution Time: {watch.ElapsedMilliseconds} ms");
 Console.WriteLine(unfold);
