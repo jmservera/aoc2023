@@ -1,0 +1,30 @@
+#!/bin/bash
+# $1 = day name
+
+# $1 = file to add the ItemGroup to
+function includeTxt() {
+    sed "/<\/PropertyGroup>/a  <ItemGroup><Content Include=\"*.txt\" CopyToOutputDirectory=\"PreserveNewest\" /></ItemGroup>" -i $1
+}
+
+# $1 = project name
+function createProject() {
+    project_name=$1
+
+    dotnet new console
+    includeTxt $project_name.csproj
+
+    touch input.txt
+    touch test.txt
+    echo "var lines = File.ReadAllLines(\"test.txt\");" >Program.cs
+}
+
+echo "Creating $1"
+mkdir $1
+echo "Creating $1/$1.csproj"
+cd $1
+
+createProject $1
+
+dotnet build
+
+code .
