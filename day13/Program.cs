@@ -50,7 +50,8 @@ int CalcMirror(string[] g, int maxDiff = 0)
     int mirrorv = 0;
     if (mirrorh == 0)
     {
-        string[] transposed = g.Transpose().Select(s => new string(s.ToArray())).ToArray();
+        string[] transposed = g.Transpose(s => new string(s.ToArray()))
+                                .ToArray();
         mirrorv = FindMirrorAxis(transposed, maxDiff);
     }
     return mirrorh * 100 + mirrorv;
@@ -73,5 +74,11 @@ public static class IEnumerableExtensions
     {
         return Enumerable.Range(0, g.First().Count())
             .Select(i => g.Select(s => s.ToArray()[i]));
+    }
+
+    public static IEnumerable<T> Transpose<S, T>(this IEnumerable<IEnumerable<S>> g, Func<IEnumerable<S>, T> transform)
+    {
+        return Enumerable.Range(0, g.First().Count())
+            .Select(i => transform(g.Select(s => s.ToArray()[i])));
     }
 }
