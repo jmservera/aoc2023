@@ -3,8 +3,6 @@ var mirrors = File.ReadAllLines("input.txt")
                 .GroupBy(l => l.Length == 0 ? sep++ : sep, (k, g) => g.ToArray())
                 .Select(g => g.Where(l => l.Length > 0).ToArray());
 
-
-
 static int FindMirrorAxis(string[] g, int exactDiff = 0)
 {
     for (int i = 1; i < g.Length; i++)
@@ -33,14 +31,11 @@ static int FindMirrorAxis(string[] g, int exactDiff = 0)
 int CalcMirror(string[] g, int maxDiff = 0)
 {
     int mirrorh = FindMirrorAxis(g, maxDiff);
-    int mirrorv = 0;
-    if (mirrorh == 0)
-    {
-        string[] transposed = g.Transpose(s => new string(s.ToArray()))
-                                .ToArray();
-        mirrorv = FindMirrorAxis(transposed, maxDiff);
-    }
-    return mirrorh * 100 + mirrorv;
+    if (mirrorh != 0)
+        return mirrorh * 100;
+
+    return FindMirrorAxis(g.Transpose(s => new string(s.ToArray()))
+                            .ToArray(), maxDiff);
 }
 
 
