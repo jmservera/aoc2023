@@ -7,17 +7,13 @@ var mirrors = File.ReadAllLines("input.txt")
 
 static int FindMirrorAxis(string[] g, int exactDiff = 0)
 {
-    int mirrorIndex = 0;
     for (int i = 1; i < g.Length; i++)
     {
-        var m = exactDiff;
-        m -= g[i].CountDifferences(g[i - 1]);
+        int m = exactDiff - g[i].CountDifferences(g[i - 1]);
         if (m >= 0)
         {
-            mirrorIndex = i;
             bool found = true;
-            int x = 1;
-            while (i + x < g.Length && i - x > 0)
+            for (int x = 1; i + x < g.Length && i - x > 0; x++)
             {
                 m -= g[i + x].CountDifferences(g[i - x - 1]);
                 if (m < 0)
@@ -25,23 +21,13 @@ static int FindMirrorAxis(string[] g, int exactDiff = 0)
                     found = false;
                     break;
                 }
-                x++;
             }
-            if (!found)
-            {
-                mirrorIndex = 0;
-            }
-            else
-            {
-                if (m == 0)
-                    break;
-                else
-                    mirrorIndex = 0;
-            }
+            if (found && m == 0)
+                return i;
         }
     }
 
-    return mirrorIndex;
+    return 0;
 }
 
 int CalcMirror(string[] g, int maxDiff = 0)
