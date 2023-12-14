@@ -54,12 +54,12 @@ public static class IEnumerableExtensions
     public static IEnumerable<IEnumerable<S>> Transpose<S>(this IEnumerable<IEnumerable<S>> g)
     {
         return Enumerable.Range(0, g.First().Count())
-            .Select(i => g.Select(s => s.ToArray()[i]));
+            .Select(i => g.Select(s => s.Skip(i).Take(1).First()));
     }
 
     public static IEnumerable<T> Transpose<S, T>(this IEnumerable<IEnumerable<S>> g, Func<IEnumerable<S>, T> transform)
     {
         return Enumerable.Range(0, g.First().Count())
-            .Select(i => transform(g.Select(s => s.ToArray()[i])));
+            .Select(i => transform(g.Select(s => s.Skip(i).Take(1).First())));
     }
 }
