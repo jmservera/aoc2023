@@ -1,12 +1,45 @@
-var lines = File.ReadAllLines("test.txt");
+using System.Buffers.Text;
 
-char[][] tilted = lines.Select(s => s.ToCharArray()).ToArray();
+var lines = File.ReadAllLines("input.txt");
 
-// Dictionary<string, char[][]> cache = new Dictionary<string, char[][]>();
-Dictionary<string, (string, char[][])> cache_next = new Dictionary<string, (string, char[][])>();
+static string calcHash(string s)
+{
+    var b = s.Chunk(4)
+        .Select(n => n.Aggregate((byte)0, (a, b) => (byte)((a << 2) + b switch { 'O' => 1, '.' => 2, '#' => 3, _ => 0 })))
+        .ToArray();
+    return Convert.ToBase64String(b);
+}
 
-//rotate tilted counter clockwise
-char[][] rotate(char[][] rotate)
+static string matrixToString(char[][] tilted)
+{
+    return tilted.Select(a => new string(a)).Aggregate((a, b) => a + '\n' + b);
+}
+static char[][] stringToMatrix(string s)
+{
+    return s.Split('\n').Select(a => a.ToCharArray()).ToArray();
+}
+
+static char[][] TiltUp(char[][] tilted)
+{
+    tilted = tilted.Select(a => a.ToArray()).ToArray();
+    for (int i = 0; i < tilted.Length - 1; i++)
+    {
+        for (int n = 0; n < tilted.Length - 1 - i; n++)
+        {
+            for (int j = 0; j < tilted[i].Length; j++)
+            {
+                if (tilted[n][j] == '.' && tilted[n + 1][j] == 'O')
+                {
+                    tilted[n][j] = 'O';
+                    tilted[n + 1][j] = '.';
+                }
+            }
+        }
+    }
+    return tilted;
+}
+
+static char[][] rotate(char[][] rotate)
 {
     char[][] rotated = new char[rotate[0].Length][];
     for (int i = 0; i < rotate[0].Length; i++)
@@ -20,103 +53,73 @@ char[][] rotate(char[][] rotate)
     return rotated;
 }
 
-static string tiltedToString(char[][] tilted)
+
+Dictionary<string, char[][]> tiltedCalcs = new Dictionary<string, char[][]>();
+int tiltedCalcsHits = 0, tiltedCalcsMisses = 0;
+
+char[][] TiltReflectorNWSE(string s)
 {
-    return tilted.Select(a => new string(a)).Aggregate((a, b) => a + b);
+    if (tiltedCalcs.ContainsKey(s))
+    {
+        tiltedCalcsHits++;
+        return tiltedCalcs[s];
+    }
+    tiltedCalcsMisses++;
+    char[][] reflector = stringToMatrix(s);
+    for (int tr = 0; tr < 4; tr++)
+    {
+
+        reflector = TiltUp(reflector);
+        reflector = rotate(reflector);
+    }
+    tiltedCalcs[s] = reflector;
+    return reflector;
 }
+
+Dictionary<string, (string, char[][])> cache_next = new Dictionary<string, (string, char[][])>();
+char[][] reflector = lines.Select(s => s.ToCharArray()).ToArray();
+
 
 int cacheHits = 0;
 int cacheMisses = 0;
-int cacheNextHits = 0;
-int cacheNextMisses = 0;
+long cycle_length = 1000000000;//1000000000;
 
-long cycle_length = 3000;//1000000000;
-
-string nextKeyCached = "";
-string lastKey = "";
+string currentKey = matrixToString(reflector);
+var currentKeyHash = calcHash(currentKey);
 
 for (long cycle = 0; cycle < cycle_length; cycle++)
 {
-    if (cycle_length > 100 && cycle % (cycle_length / 100) == 0)
+    if (cycle_length > 100 && cycle % (cycle_length / 200) == 0)
     {
         Console.WriteLine($"{cycle * 100.0 / cycle_length}%");
-        Console.WriteLine($"Cache hits: {cacheHits}, cache misses: {cacheMisses},  next cache hits: {cacheNextHits}, next cache misses: {cacheNextMisses} next cache size: {cache_next.Count}");
+        Console.WriteLine($"Cache hits: {cacheHits}, cache misses: {cacheMisses}, next cache size: {cache_next.Count}");
+        Console.WriteLine($"Tilted calcs hits: {tiltedCalcsHits}, tilted calcs misses: {tiltedCalcsMisses}, tilted calcs size: {tiltedCalcs.Count}");
     }
-    var currentTiltKey = nextKeyCached == "" ? tiltedToString(tilted) : nextKeyCached;
 
-    if (cache_next.ContainsKey(currentTiltKey))
+    if (cache_next.ContainsKey(currentKeyHash))
     {
-        cacheNextHits++;
-        nextKeyCached = cache_next[currentTiltKey].Item1;
-        tilted = cache_next[currentTiltKey].Item2;
-        lastKey = currentTiltKey;
+        cacheHits++;
+        (currentKeyHash, reflector) = cache_next[currentKeyHash];
         continue;
     }
     else
     {
-        cacheNextMisses++;
-    }
-    nextKeyCached = "";
-    for (int tr = 0; tr < 4; tr++)
-    {
-        for (int i = 0; i < lines.Length - 1; i++)
-        {
-            for (int n = 0; n < lines.Length - 1 - i; n++)
-            {
-                for (int j = 0; j < lines[i].Length; j++)
-                {
-                    if (tilted[n][j] == '.' && tilted[n + 1][j] == 'O')
-                    {
-                        tilted[n][j] = 'O';
-                        tilted[n + 1][j] = '.';
-                    }
-                }
-            }
-        }
-        tilted = rotate(tilted);
+        cacheMisses++;
     }
 
-    if (lastKey != "")
-    {
-        if (cache_next.ContainsKey(lastKey))
-        {
-            if (cache_next[lastKey].Item1 != currentTiltKey)
-            {
-                Console.WriteLine("last key not equal");
-            }
-            else
-            {
-                Console.WriteLine("last key equal");
-            }
-        }
-        cache_next[lastKey] = (tiltedToString(tilted), tilted);
-        Console.WriteLine($"last key: {lastKey}\nnext: {cache_next[lastKey].Item1}");
-        tilted.ToList().ForEach(a =>
-            Console.WriteLine(new string(a)));
-    }
-    else
-    {
-        Console.WriteLine("no last key");
-    }
-    lastKey = tiltedToString(tilted);
+    var newReflector = TiltReflectorNWSE(currentKey);
+    var newKey = matrixToString(newReflector);
+    var newKeyHash = calcHash(newKey);
+    cache_next[currentKeyHash] = (newKeyHash, newReflector);
+    currentKey = newKey;
+    currentKeyHash = newKeyHash;
+    reflector = newReflector;
 }
 
-tilted.ToList().ForEach(a =>
+reflector.ToList().ForEach(a =>
             Console.WriteLine(new string(a)));
 
-long sum = tilted.Select((a, i) => (a, i)).Sum(a => a.a.Count(b => b == 'O') * (tilted.Length - a.i));
+long sum = reflector.Select((a, i) => (a, i)).Sum(a => a.a.Count(b => b == 'O') * (reflector.Length - a.i));
 Console.WriteLine(sum);
 
-Console.WriteLine((tilted.Length, tilted[0].Length));
-
-cache_next[lastKey].Item2.ToList().ForEach(a =>
-            Console.WriteLine(new string(a)));
-
-// foreach (var key in cache_next.Keys)
-// {
-//     Console.WriteLine($"Key:  {key}\nnext: {cache_next[key].Item1}");
-//     cache_next[key].Item2.ToList().ForEach(a =>
-//             Console.WriteLine(new string(a)));
-//     Console.WriteLine();
-// }
-
+Console.WriteLine((reflector.Length, reflector[0].Length));
