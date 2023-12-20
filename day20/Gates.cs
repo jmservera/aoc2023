@@ -1,25 +1,23 @@
-using System.ComponentModel;
-using System.Security.Cryptography.X509Certificates;
 
 public abstract class Gate
 {
     static long lowCounter, highCounter;
     public string Name { get; set; }
 
-    public bool Result { get; protected set; }
+    public virtual bool State { get; }
 
-    public string[] Destinations { get; protected set; }
+    public List<string> Destinations { get; protected set; }
     public static long LowCounter { get => lowCounter; }
     public static long HighCounter { get => highCounter; }
 
 
-    public Gate(string Name, string[] destinations)
+    public Gate(string Name, List<string> destinations)
     {
         this.Name = Name;
         this.Destinations = destinations;
     }
 
-    public (string, bool, string)[] Operation(bool isHigh, string origin = "")
+    public IEnumerable<(string, bool, string)> Operation(bool isHigh, string origin = "")
     {
         if (isHigh)
         {
@@ -29,15 +27,21 @@ public abstract class Gate
         {
             lowCounter++;
         }
-        return ExecOperation(isHigh, origin).Select(x => (x.Item1, x.Item2, Name)).ToArray();
+        return ExecOperation(isHigh, origin).Select(x => (x.Item1, x.Item2, Name));
     }
 
-    protected abstract (string, bool)[] ExecOperation(bool isHigh, string input = "");
+    protected abstract IEnumerable<(string, bool)> ExecOperation(bool isHigh, string input = "");
+
+    public static void ResetCounters()
+    {
+        lowCounter = 0;
+        highCounter = 0;
+    }
 }
 
 public class Test : Gate
 {
-    public Test(string name, string[] destinations) : base(name, destinations)
+    public Test(string name, List<string> destinations) : base(name, destinations)
     {
     }
 
@@ -46,17 +50,18 @@ public class Test : Gate
         return Array.Empty<(string, bool)>();
     }
 
-    public static Test Instance { get; } = new Test("test", Array.Empty<string>());
+    public static Test Instance { get; } = new Test("test", new List<string>());
 }
 
 public class FlipFlop : Gate
 {
+    public override bool State => state;
     bool state = false;
-    public FlipFlop(string name, string[] destinations) : base(name, destinations)
+    public FlipFlop(string name, List<string> destinations) : base(name, destinations)
     {
     }
 
-    protected override (string, bool)[] ExecOperation(bool isHigh, string input = "")
+    protected override IEnumerable<(string, bool)> ExecOperation(bool isHigh, string input = "")
     {
         if (isHigh)
         {
@@ -66,16 +71,16 @@ public class FlipFlop : Gate
         else
         {
             state = !state;
-            return Destinations.Zip(Enumerable.Repeat(state, Destinations.Length))
-                    .ToArray();
+            return Destinations.Zip(Enumerable.Repeat(state, Destinations.Count));
         }
     }
 }
 
 public class Conjunction : Gate
 {
-    Dictionary<string, bool> states = new Dictionary<string, bool>();
-    public Conjunction(string name, string[] destinations) : base(name, destinations)
+    public override bool State => states.Values.Any(c => !c);
+    private readonly Dictionary<string, bool> states = new();
+    public Conjunction(string name, List<string> destinations) : base(name, destinations)
     {
     }
 
@@ -87,25 +92,23 @@ public class Conjunction : Gate
         }
     }
 
-    protected override (string, bool)[] ExecOperation(bool isHigh, string input = "")
+    protected override IEnumerable<(string, bool)> ExecOperation(bool isHigh, string input = "")
     {
         states[input] = isHigh;
-        var result = !states.Values.Aggregate(true, (acc, val) => acc && val);
+        var result = states.Values.Any(c => !c);
 
-        return Destinations.Zip(Enumerable.Repeat(result, Destinations.Length))
-                    .ToArray();
+        return Destinations.Zip(Enumerable.Repeat(result, Destinations.Count));
     }
 }
 
 public class Broadcast : Gate
 {
-    public Broadcast(string name, string[] destinations) : base(name, destinations)
+    public Broadcast(string name, List<string> destinations) : base(name, destinations)
     {
     }
 
-    protected override (string, bool)[] ExecOperation(bool isHigh, string input = "")
+    protected override IEnumerable<(string, bool)> ExecOperation(bool isHigh, string input = "")
     {
-        return Destinations.Zip(Enumerable.Repeat(isHigh, Destinations.Length))
-                    .ToArray();
+        return Destinations.Zip(Enumerable.Repeat(isHigh, Destinations.Count));
     }
 }
